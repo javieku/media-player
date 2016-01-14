@@ -142,30 +142,39 @@ public class MediaPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
   private static final int RENDERER_BUILDING_STATE_BUILDING = 2;
   private static final int RENDERER_BUILDING_STATE_BUILT = 3;
 
-  private final RendererBuilder rendererBuilder;
-  private final ExoPlayer player;
-  private final PlayerControl playerControl;
+  private final RendererBuilder rendererBuilder;          // Concrete renderer for a playback session. HLS, SS or DASH.
+  private final ExoPlayer player;                         // ExoPlayer does the actual work
+  private final PlayerControl playerControl;              // Playback control: pause, resume, fast forward, rewind.
   private final Handler mainHandler;
-  private final CopyOnWriteArrayList<Listener> listeners;
+  private final CopyOnWriteArrayList<Listener> listeners; // Objects subscribed to MediaPlayer events.
 
+  // For internal player state management purposes
   private int rendererBuildingState;
   private int lastReportedPlaybackState;
   private boolean lastReportedPlayWhenReady;
 
-  private Surface surface;
-  private AspectRatioSurfaceView surfaceView;
+  private Surface surface;                                // Main surface to be rendered. It is given by the application.
+  private AspectRatioSurfaceView surfaceView;             // Main view given by the application.
+
+  // Information recovered from the manifest
   private TrackRenderer videoRenderer;
   private CodecCounters codecCounters;
   private Format videoFormat;
   private int videoTrackToRestore;
-
   private BandwidthMeter bandwidthMeter;
 
-  private CaptionListener captionListener;
-  private Id3MetadataListener id3MetadataListener;
-  private InternalErrorListener internalErrorListener;
-  private InfoListener infoListener;
+  // Exoplayer callbacks
+  private CaptionListener captionListener;             // Subtitles events.
+  private Id3MetadataListener id3MetadataListener;     // For HLS & MPEG TS id3 information on audio tracks.
+  private InternalErrorListener internalErrorListener; // Error message from ExoPlayer
+  private InfoListener infoListener;                   // Notify format,
 
+  /**
+   * Main constructor {@link MediaPlayer}.
+   *
+   * @param playable Stream to be played.
+   * @param configuration Provides a set of values required to start the playback session such as userAgent or the application context.
+   */
   public MediaPlayer(Stream playable, PlayerConfiguration configuration) {
     this.rendererBuilder = RendererBuilderFactory.createRendererBuilder(playable, configuration);
     player = ExoPlayer.Factory.newInstance(RENDERER_COUNT, 1000, 5000);
@@ -179,6 +188,9 @@ public class MediaPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
     player.setSelectedTrack(TrackInfo.TYPE_TEXT, TRACK_DISABLED);
   }
 
+  /**
+   * Object to perform trick play: pause, resume, fast forward, rewind.
+   */
   public PlayerControl getPlayerControl() {
     return playerControl;
   }
@@ -210,22 +222,37 @@ public class MediaPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
   }
 
 // ------------------------ MediaPlayer surface management ------------------------
-
-  private void setSurface(Surface surface) {
-    this.surface = surface;
-    pushSurface(false);
+  /**
+   * Set AspectRatioSurfaceView to be painted. If this API is used there is no need to manage
+   * video and view sizes on the app.
+   *
+   * @param aspectRatioSurfaceView Surface where the video is rendered.
+   */
+  public void setDisplay(AspectRatioSurfaceView aspectRatioSurfaceView) {
+    this.surfaceView = aspectRatioSurfaceView;
+    setSurface(aspectRatioSurfaceView.getHolder().getSurface());
   }
 
-  public void setDisplay(AspectRatioSurfaceView surfaceView) {
-      this.surfaceView = surfaceView;
-      setSurface(surfaceView.getHolder().getSurface());
+  public AspectRatioSurfaceView getDisplay() {
+    return surfaceView;
   }
 
   public Surface getSurface() {
     return surface;
   }
 
-  public void blockingClearSurface() {
+  /**
+   * Set AspectRatioSurfaceView to be painted. If this API is used aspect
+   * ratio must be managed by the application using onVideoSizeChanged callback.
+   *
+   * @param surface Surface where the video is rendered.
+   */
+  public void setSurface(Surface surface) {
+    this.surface = surface;
+    pushSurface(false);
+  }
+
+  private void blockingClearSurface() {
     surface = null;
     pushSurface(true);
   }
@@ -259,7 +286,7 @@ public class MediaPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
       }
    }
 
-// ------------------------ MediaPlayer track info ------------------------
+// ------------------------ MediaPlayer video, audio and subtitles track information and selection ------------------------
 
   public int getTrackCount(int type) {
     return player.getTrackCount(type);
@@ -374,7 +401,7 @@ public class MediaPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
     player.seekTo(positionMs);
   }
 
-// ------------------------ MediaPlayer getters ------------------------
+// ------------------------ MediaPlayer metadata information ------------------------
 
   public Format getFormat() {
     return videoFormat;
@@ -401,11 +428,11 @@ public class MediaPlayer implements ExoPlayer.Listener, ChunkSampleSource.EventL
   }
 
   public boolean getPlayWhenReady() {
-    return player.getPlayWhenReady();
+      return player.getPlayWhenReady();
   }
 
   Looper getPlaybackLooper() {
-    return player.getPlaybackLooper();
+      return player.getPlaybackLooper();
   }
 
   Handler getMainHandler() {

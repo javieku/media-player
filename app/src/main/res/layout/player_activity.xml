@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+             xmlns:fab="http://schemas.android.com/apk/res-auto"
+    android:id="@+id/root"
+    android:focusable="true"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:keepScreenOn="true">
+
+    <com.castlabs.mediaplayer.tinysdk.AspectRatioSurfaceView
+        android:id="@+id/surface_view"
+               android:layout_width="match_parent"
+               android:layout_height="match_parent"
+               android:layout_gravity="center"/>
+
+    <TextView android:id="@+id/player_state_view"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:paddingLeft="4dp"
+        android:paddingRight="4dp"
+        android:textSize="10sp"/>
+
+    <LinearLayout android:id="@+id/controls_root"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:visibility="visible">
+
+        <Button android:id="@+id/text_controls"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="@string/text"
+          style="@style/ButtonTheme"
+          android:visibility="gone"
+          android:onClick="showTextPopup"/>
+
+      <Button android:id="@+id/retry_button"
+          android:layout_width="wrap_content"
+          android:layout_height="wrap_content"
+          android:text="@string/retry"
+          android:visibility="gone"
+          style="@style/ButtonTheme"/>
+
+    </LinearLayout>
+
+    <com.getbase.floatingactionbutton.FloatingActionsMenu
+        android:id="@+id/multiple_actions_down"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_alignParentRight="true"
+        android:layout_alignParentEnd="true"
+        android:layout_alignParentTop="true"
+        fab:fab_addButtonColorNormal="@color/blue_semi_transparent"
+        fab:fab_addButtonColorPressed="@color/blue_semi_transparent_pressed"
+        fab:fab_addButtonSize="mini"
+        fab:fab_addButtonPlusIconColor="@color/half_black"
+        fab:fab_expandDirection="down"
+        fab:fab_labelStyle="@style/menu_labels_style"
+        android:layout_marginTop="16dp"
+        android:layout_marginRight="16dp"
+        android:layout_marginEnd="16dp"
+        android:layout_gravity="right|top">
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/video_controls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            fab:fab_title="@string/video"
+            fab:fab_colorNormal="@color/blue_semi_transparent"
+            fab:fab_colorPressed="@color/blue_semi_transparent_pressed"
+            android:onClick="showVideoPopup"/>
+
+        <com.getbase.floatingactionbutton.FloatingActionButton
+            android:id="@+id/audio_controls"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            fab:fab_title="@string/audio"
+            fab:fab_colorNormal="@color/blue_semi_transparent"
+            fab:fab_colorPressed="@color/blue_semi_transparent_pressed"
+            android:onClick="showAudioPopup"/>
+
+    </com.getbase.floatingactionbutton.FloatingActionsMenu>
+
+</FrameLayout>
